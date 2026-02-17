@@ -25,8 +25,7 @@ Keep your work readable: Use clear headings and label plot elements thoughtfully
 
 Submit both your rendered output and the Quarto (`.qmd`) file.
 
-**Assignment submission (YOUR NAME)**: ______________________________________
-
+**Assignment submission (YOUR NAME)**: Vedika Shirtekar
 
 ------------------------------------------------------------------------
 
@@ -61,23 +60,24 @@ library(AER)      # for ivreg (2SLS estimation)
 
 ### Load the matched dataset (from Assignment 2)
 
-> The matched_data has been preprocessed by matching on key covariates (e.g. pretreatment home values, education, income, population density) to improve balance between treated and control precincts. We will now use this data for the IV analysis. Make sure to re-code the `precinct_id` variable as a `factor`. 
+> The matched_data has been preprocessed by matching on key covariates (e.g. pretreatment home values, education, income, population density) to improve balance between treated and control precincts. We will now use this data for the IV analysis. Make sure to re-code the `precinct_id` variable as a `factor`.
 
 ```{r}
 
-matched_data <- 
+matched_data <- read_csv("data/matched_data_subset.csv")
 
+matched_data <- matched_data %>% mutate(precinct_id = as.factor(precinct_id))
 ```
 
 ------------------------------------------------------------------------
 
 ### Part 1: IV Identification Rationale
 
-Intuition for Using an Instrument: 
+Intuition for Using an Instrument:
 
 **Question 1:** After matching on observables, why might we still need to utilize an instrumental variable approach to identify the causal effect of turbine proposals on vote share? In other words, what potential issues remain that an IV method can help address in this context? Use specific examples from the study to illustrate threats to a causal interpretation, then explain how an IV approach is designed to mitigate those threats.
 
-*Response:* _________________________
+*Response:* Matching on observables is often not sufficient enough to establish causality because it cannot account for unobserved factors that may influence both turbine placement and voting behavior. In Stoke's study, selection bias remains a primary concern even after matching similar precincts because developers may have chosen to propose turbines in areas where land was easier to obtain or where political opposition was expected to be weaker; there is selection bias in the project location. If these areas were also already experiencing declining support for the Liberal Party for unrelated/unobserved reasons, then a simple comparison could make a mistake by attributing the voter loss to the turbines. To address this issue, the study uses an instrumental variable (IV) approach that utilizes local wind resources. Because wind speed is determined by natural geography and is unrelated to political preferences, it can be used to isolate the portion of turbine placement that is random. Using a 2LS, the analysis first predicts turbine proposals based on wind speed and then estimates their effect on vote share. This approach allows the causal effect to be driven by geographic suitability for a turbine rather than political selection or other unobserved factors.
 
 ------------------------------------------------------------------------
 
@@ -87,9 +87,9 @@ Intuition for Using an Instrument:
 
 $$D_i = \alpha_0 + \alpha_1 Z_i $$
 
-a. Estimate the first-stage regression of the treatment on the instrument (with controls). Regress `proposed_turbine_3km` on `log_wind_power`.
-b. Include the control variables used in Stokes (2015) for both stages: Distance to lakes, geographic coordinates (latitude & longitude) with their squares and interaction, plus district fixed effects. 
-c. After running the first stage, report the F-statistic for the instrument.
+a.  Estimate the first-stage regression of the treatment on the instrument (with controls). Regress `proposed_turbine_3km` on `log_wind_power`.
+b.  Include the control variables used in Stokes (2015) for both stages: Distance to lakes, geographic coordinates (latitude & longitude) with their squares and interaction, plus district fixed effects.
+c.  After running the first stage, report the F-statistic for the instrument.
 
 ```{r}
 first_stage <- lm()
@@ -100,40 +100,42 @@ export_summs(first_stage, digits = 3,
 
 ```
 
-###  Testing Instrument Relevance
+### Testing Instrument Relevance
 
 Check instrument strength (F-statistic)
+
 ```{r}
 
 
 ```
 
-**Question 2A:** Based on the instrument relevance test reported in the study, would you conclude the instrument is strong enough to be credible? Explain what a weak instrument would mean in this setting: Specifically, what would it suggest about compliance with Ontario’s Green Energy Act policy? 
+**Question 2A:** Based on the instrument relevance test reported in the study, would you conclude the instrument is strong enough to be credible? Explain what a weak instrument would mean in this setting: Specifically, what would it suggest about compliance with Ontario’s Green Energy Act policy?
 
-*Response:* _________________________ 
+*Response:* \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
 
 ------------------------------------------------------------------------
 
-#### 2B. Second Stage Estimation 
+#### 2B. Second Stage Estimation
 
 #### Regress the outcome ($Y$) on the fitted values from the 1st stage ($\hat{X}_i$)
 
 $$Y_i = \beta_0 + \beta_1 \hat{D}_i + \epsilon_i$$
 
-a. Now estimate the second stage of the 2SLS. 
-b. First, use the first-stage model to generate the predicted values of proposed_turbine_3km for each precinct (these are $\hat{D}_i$). 
-c. Add these predicted values as a new column in matched_data (e.g. proposed_turbine_3km_HAT). 
-d. Then, regress the outcome change_liberal (the change in Liberal vote share from 2007 to 2011) on the predicted treatment (proposed_turbine_3km_HAT), including the same controls and fixed effects as in the first stage. 
-e. Fill in the code for these steps below to obtain the second-stage regression results.
+a.  Now estimate the second stage of the 2SLS.
+b.  First, use the first-stage model to generate the predicted values of proposed_turbine_3km for each precinct (these are $\hat{D}_i$).
+c.  Add these predicted values as a new column in matched_data (e.g. proposed_turbine_3km_HAT).
+d.  Then, regress the outcome change_liberal (the change in Liberal vote share from 2007 to 2011) on the predicted treatment (proposed_turbine_3km_HAT), including the same controls and fixed effects as in the first stage.
+e.  Fill in the code for these steps below to obtain the second-stage regression results.
 
-Save predicted values $\hat{X}_i$ from first stage 
+Save predicted values $\hat{X}_i$ from first stage
+
 ```{r}
 
 matched_data$proposed_turbine_3km_HAT <- 
 
 ```
 
-#### Estimate the second-stage regression 
+#### Estimate the second-stage regression
 
 $$LiberalVoteShare_i = \beta_0 + \beta_1 \widehat{ProposedTurbine}_i + ControlVariables... +  \epsilon_i$$
 
@@ -149,37 +151,34 @@ export_summs(second_stage, digits = 3,
 
 **Question 2B:** Imagine you are explaining your 2SLS findings to a policymaker in Ontario. What does the estimated coefficient on `proposed_turbine_3km_HAT` imply about the electoral impact of a local wind turbine proposal (within 3 km) on liberal vote share?
 
-**Question 2C:** Explain what it means that IV identifies a LATE in the context of the wind-turbine voting study. What specific subset of observations does the second-stage 2SLS estimate apply to, and what does it imply about interpretation and generalizability? 
+**Question 2C:** Explain what it means that IV identifies a LATE in the context of the wind-turbine voting study. What specific subset of observations does the second-stage 2SLS estimate apply to, and what does it imply about interpretation and generalizability?
 
-*Response:* _________________________ 
+*Response:* \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
 
 ------------------------------------------------------------------------
 
 ### Part 3: IV Assumptions and Validity
 
-#### Evaluate Instrument Validity 
+#### Evaluate Instrument Validity
 
 **Question 3:** List the four key assumptions required for the IV strategy (2SLS) to identify a causal effect, and briefly explain what each one means in the context of this study. (Hint: think about what conditions a valid instrument must satisfy (relevance, exclusion,...)
 
-*Response:* _________________________ 
+*Response:* \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
 
 ------------------------------------------------------------------------
 
-### Part 4: Estimate 2SLS using `AER::ivreg()` 
+### Part 4: Estimate 2SLS using `AER::ivreg()`
 
 📜 [SEE Documentation for specification details: AER package Viggnette Example](https://cran.r-project.org/web/packages/AER/vignettes/AER.pdf)
 
 ::: callout-tip
-
 Syntax for specifying 2SLS using `ivreg()`:
 
 `ivreg( Y ~ D + CONTROLS  | Z + CONTROLS , data )`
 
-- The first-stage predictor variables go after the `~` symbol
-- The second-stage predictor variables go after the `|` symbol
-
-::: 
-
+-   The first-stage predictor variables go after the `~` symbol
+-   The second-stage predictor variables go after the `|` symbol
+:::
 
 ```{r}
   
@@ -195,7 +194,7 @@ export_summs(fit_2sls, digits = 3,
 
 **Question 4:** Choose two *robustness checks* from the paper that the authors use to increase confidence in their causal identification strategy. For each one, summarize the logic and findings from the robustness check in your own words:
 
-*Response:* _________________________ 
+*Response:* \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
 
 ------------------------------------------------------------------------
 
