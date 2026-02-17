@@ -131,7 +131,7 @@ Save predicted values $\hat{X}_i$ from first stage
 
 ```{r}
 
-matched_data$proposed_turbine_3km_HAT <- 
+matched_data$proposed_turbine_3km_HAT <- predict(first_stage)
 
 ```
 
@@ -140,7 +140,8 @@ matched_data$proposed_turbine_3km_HAT <-
 $$LiberalVoteShare_i = \beta_0 + \beta_1 \widehat{ProposedTurbine}_i + ControlVariables... +  \epsilon_i$$
 
 ```{r}
-second_stage <- lm()
+second_stage <- lm(change_liberal ~ proposed_turbine_3km_HAT +
+                       mindistlake + latitude + longitude + lat_sq + long_sq + long_lat + district_id, data = matched_data)
 
 export_summs(second_stage, digits = 3, 
              model.names = c("Second stage: Change in Liberal Vote Share"),
@@ -151,9 +152,13 @@ export_summs(second_stage, digits = 3,
 
 **Question 2B:** Imagine you are explaining your 2SLS findings to a policymaker in Ontario. What does the estimated coefficient on `proposed_turbine_3km_HAT` imply about the electoral impact of a local wind turbine proposal (within 3 km) on liberal vote share?
 
+The estimated coefficient of -0.102 indicates that proposing a wind turbine within 3 km of a precinct led to a sizeable drop in support for the incumbent liberal party. Specifically, turbine proposals caused about a 10.2 percentage point decrease in the party's vote share. Because this estimate is produced from the second stage of a 2SLS, it can be interpreted as a causal effect rather than a simple correlation between the predicted wind turbine within 3 km of a precinct and vote share of the incumbent party. Essentially, the decline in votes reflects voter backlash directly caused by the turbine projects/proposals and not by broader political trends.
+
 **Question 2C:** Explain what it means that IV identifies a LATE in the context of the wind-turbine voting study. What specific subset of observations does the second-stage 2SLS estimate apply to, and what does it imply about interpretation and generalizability?
 
-*Response:* \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+*Response:* In Stokes's wind turbine study, the LATE measures the causal impact of a turbine proposal only for the precincts where turbines were proposed because availability wind resources (ex. wind speed) were high. Simply put, the estimate applies to areas where turbine placement was driven by wind suitability and not too all precincts. It does not include places that would never receive turbines due to geographic and/or legal limits (ex. property or agricultural policy concerns).
+
+This understanding matters for the interpretation and generalizability of the model results. The estimated 10.2 percentage drop in vote share reflects the voter response in precincts where turbine placement followed the Green Energy Act. While this provides a strong causal estimate for those areas, it may not apply everywhere. As a result, it cannot be assumed that the same electoral backlash would occur in areas with low wind or in other political contexts where both voter reactions and developer behavior for turbine projects differ.
 
 ------------------------------------------------------------------------
 
