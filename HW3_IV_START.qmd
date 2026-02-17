@@ -66,7 +66,8 @@ library(AER)      # for ivreg (2SLS estimation)
 
 matched_data <- read_csv("data/matched_data_subset.csv")
 
-matched_data <- matched_data %>% mutate(precinct_id = as.factor(precinct_id))
+matched_data <- matched_data %>% mutate(precinct_id = as.factor(precinct_id),
+                                        district_id = as.factor(district_id))
 ```
 
 ------------------------------------------------------------------------
@@ -92,7 +93,7 @@ b.  Include the control variables used in Stokes (2015) for both stages: Distanc
 c.  After running the first stage, report the F-statistic for the instrument.
 
 ```{r}
-first_stage <- lm()
+first_stage <- lm(proposed_turbine_3km ~ log_wind_power + mindistlake + latitude + longitude  + lat_sq + long_sq + long_lat + district_id, data = matched_data)
 
 export_summs(first_stage, digits = 3,
              model.names = c("First stage: Prpoposed Turbine 3km"),
@@ -105,13 +106,12 @@ export_summs(first_stage, digits = 3,
 Check instrument strength (F-statistic)
 
 ```{r}
-
-
+print(paste("F-statistic:", summary(first_stage)$fstatistic[1]))
 ```
 
 **Question 2A:** Based on the instrument relevance test reported in the study, would you conclude the instrument is strong enough to be credible? Explain what a weak instrument would mean in this setting: Specifically, what would it suggest about compliance with Ontario’s Green Energy Act policy?
 
-*Response:* \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+*Response:* The first stage results indicate that the instrument is strong and credible with an F-statistic exceeding 10 (F = 15.16) produced from this model. The model tested here reports an F-statistic of 15.16 and the coefficient for wind power is statistically significant (p \< .05); the same is observed in the study, with a reported F-statistic of 68 and a statistically significant coefficient for wind power (p \< .05). A weak instrument would indicate that wind availability does not strongly influence where turbines are proposed, suggesting that developers chose locations for other unobserved reasons such as land access or lower political resistance. The high F-statistic indicates that turbine proposals are strongly driven by wind resources, which is consistent with the intent of the Green Energy Act in Ontario. As a result, the IV approach is able to isolate turbine placement that is independent of local political influences, thereby reducing concerns about strategic site selection by developers.
 
 ------------------------------------------------------------------------
 
