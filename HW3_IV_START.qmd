@@ -174,13 +174,13 @@ This understanding matters for the interpretation and generalizability of the mo
 
 *Response:*
 
--   
+-   Relevance assumption: The instrument should strongly predict the treatment. Here, wind resources must predict where turbines are proposed. Since windier areas are much more likely to receive wind turbine proposals (high F-statistic), this assumption is passed.
 
--   
+-   Exclusion restriction: The instrument should affect the outcome only through the treatment; the instrument should be exogenous (must be independent and not influenced by additional variables and outcome of the regression equation of interest). Here, wind speed should influence liberal vote share only by leading to turbine proposals and not through other factors, such as agricultural policy or politics in rural areas. This assumption would fail if wind directly affected voting behavior.
 
--   
+-   Exogeneity: The instrument cannot be related to unobserved political factors; the instrument must be independent and not influenced by additional variables + the outcome of the regression equation. Essentially, local wind speeds cannot be related to voters' established political preferences or additional socioeconomic traits.
 
--   
+-   Monotonicity or uniformity: The instrument must push the treatment in the same direction everywhere. In this case, higher wind power should always make turbine proposals more likely rather than less likely. Essentially, no precinct should be more likely to receive turbines because it is less windy.
 
 ------------------------------------------------------------------------
 
