@@ -67,7 +67,7 @@ library(AER)      # for ivreg (2SLS estimation)
 matched_data <- read_csv("data/matched_data_subset.csv")
 
 matched_data <- matched_data %>% mutate(precinct_id = as.factor(precinct_id),
-                                        district_id = as.factor(district_id))
+                                       district_id = as.factor(district_id))
 ```
 
 ------------------------------------------------------------------------
@@ -93,10 +93,12 @@ b.  Include the control variables used in Stokes (2015) for both stages: Distanc
 c.  After running the first stage, report the F-statistic for the instrument.
 
 ```{r}
-first_stage <- lm(proposed_turbine_3km ~ log_wind_power + mindistlake + latitude + longitude  + lat_sq + long_sq + long_lat + district_id, data = matched_data)
+first_stage <- lm(proposed_turbine_3km ~ log_wind_power + mindistlake + mindistlake_sq +
+                      latitude + longitude  + 
+                      lat_sq + long_sq + long_lat + district_id, data = matched_data)
 
 export_summs(first_stage, digits = 3,
-             model.names = c("First stage: Prpoposed Turbine 3km"),
+             model.names = c("First stage: Propoposed Turbine 3km"),
              coefs = c("(Intercept)", "log_wind_power")) 
 
 ```
@@ -111,7 +113,7 @@ print(paste("F-statistic:", summary(first_stage)$fstatistic[1]))
 
 **Question 2A:** Based on the instrument relevance test reported in the study, would you conclude the instrument is strong enough to be credible? Explain what a weak instrument would mean in this setting: Specifically, what would it suggest about compliance with Ontario’s Green Energy Act policy?
 
-*Response:* The first stage results indicate that the instrument is strong and credible with an F-statistic exceeding 10 (F = 15.16) produced from this model. The model tested here reports an F-statistic of 15.16 and the coefficient for wind power is statistically significant (p \< .05); the same is observed in the study, with a reported F-statistic of 68 and a statistically significant coefficient for wind power (p \< .05). A weak instrument would indicate that wind availability does not strongly influence where turbines are proposed, suggesting that developers chose locations for other unobserved reasons such as land access or lower political resistance. The high F-statistic indicates that turbine proposals are strongly driven by wind resources, which is consistent with the intent of the Green Energy Act in Ontario. As a result, the IV approach is able to isolate turbine placement that is independent of local political influences, thereby reducing concerns about strategic site selection by developers.
+*Response:* The first stage results indicate that the instrument is strong and credible with an F-statistic exceeding 10 (F = 14.71) produced from this model. The model tested here reports an F-statistic of 14.71 and the coefficient for wind power is statistically significant (p \< .05). The same is observed in the study with a reported F-statistic of 68 and a statistically significant coefficient for wind power (p \< .05). A weak instrument would indicate that wind availability does not strongly influence where turbines are proposed, suggesting that developers chose locations for other unobserved reasons, such as land access or lower political resistance. The high F-statistic indicates that turbine proposals are strongly driven by wind resources, which is consistent with the intent of the Green Energy Act in Ontario. As a result, the IV approach is able to isolate turbine placement that is independent of local political influences, thereby reducing concerns about strategic site selection by developers.
 
 ------------------------------------------------------------------------
 
@@ -141,7 +143,9 @@ $$LiberalVoteShare_i = \beta_0 + \beta_1 \widehat{ProposedTurbine}_i + ControlVa
 
 ```{r}
 second_stage <- lm(change_liberal ~ proposed_turbine_3km_HAT +
-                       mindistlake + latitude + longitude + lat_sq + long_sq + long_lat + district_id, data = matched_data)
+                       mindistlake + mindistlake_sq + 
+                       latitude + longitude + 
+                       lat_sq + long_sq + long_lat + district_id, data = matched_data)
 
 export_summs(second_stage, digits = 3, 
              model.names = c("Second stage: Change in Liberal Vote Share"),
@@ -152,13 +156,13 @@ export_summs(second_stage, digits = 3,
 
 **Question 2B:** Imagine you are explaining your 2SLS findings to a policymaker in Ontario. What does the estimated coefficient on `proposed_turbine_3km_HAT` imply about the electoral impact of a local wind turbine proposal (within 3 km) on liberal vote share?
 
-The estimated coefficient of -0.102 indicates that proposing a wind turbine within 3 km of a precinct led to a sizeable drop in support for the incumbent liberal party. Specifically, turbine proposals caused about a 10.2 percentage point decrease in the party's vote share. Because this estimate is produced from the second stage of a 2SLS, it can be interpreted as a causal effect rather than a simple correlation between the predicted wind turbine within 3 km of a precinct and vote share of the incumbent party. Essentially, the decline in votes reflects voter backlash directly caused by the turbine projects/proposals and not by broader political trends.
+The estimated coefficient of -0.065 indicates that proposing a wind turbine within 3 km of a precinct led to a drop in support for the incumbent liberal party. Specifically, turbine proposals caused about a 6.5 percentage point decrease in the party's vote share. Because this estimate is produced from the second stage of a 2SLS, it can be interpreted as a causal effect rather than a simple correlation between the predicted wind turbine within 3 km of a precinct and vote share of the incumbent party. Essentially, the decline in votes reflects voter backlash directly caused by the turbine projects/proposals and not by broader political trends.
 
 **Question 2C:** Explain what it means that IV identifies a LATE in the context of the wind-turbine voting study. What specific subset of observations does the second-stage 2SLS estimate apply to, and what does it imply about interpretation and generalizability?
 
-*Response:* In Stokes's wind turbine study, the LATE measures the causal impact of a turbine proposal only for the precincts where turbines were proposed because availability wind resources (ex. wind speed) were high. Simply put, the estimate applies to areas where turbine placement was driven by wind suitability and not too all precincts. It does not include places that would never receive turbines due to geographic and/or legal limits (ex. property or agricultural policy concerns).
+*Response:* In Stokes's wind turbine study, the LATE measures the causal impact of a turbine proposal only for the precincts where turbines were proposed because availability wind resources (ex. wind speed) were high. Simply put, the estimate applies to areas where turbine placement was driven by wind suitability and not to all precincts. It does not include precincts that would never receive turbines due to geographic and/or legal limits (ex. property or agricultural policy concerns).
 
-This understanding matters for the interpretation and generalizability of the model results. The estimated 10.2 percentage drop in vote share reflects the voter response in precincts where turbine placement followed the Green Energy Act. While this provides a strong causal estimate for those areas, it may not apply everywhere. As a result, it cannot be assumed that the same electoral backlash would occur in areas with low wind or in other political contexts where both voter reactions and developer behavior for turbine projects differ.
+This understanding matters for the interpretation and generalizability of the model results. The estimated 6.5 percentage drop in vote share reflects the voter response in precincts where turbine placement followed the Green Energy Act. While this provides a strong causal estimate for those areas, it may not apply everywhere. As a result, it cannot be assumed that the same electoral backlash would occur in areas with low wind or in other political contexts where both voter reactions and developer behavior for turbine projects differ.
 
 ------------------------------------------------------------------------
 
@@ -168,7 +172,15 @@ This understanding matters for the interpretation and generalizability of the mo
 
 **Question 3:** List the four key assumptions required for the IV strategy (2SLS) to identify a causal effect, and briefly explain what each one means in the context of this study. (Hint: think about what conditions a valid instrument must satisfy (relevance, exclusion,...)
 
-*Response:* \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+*Response:*
+
+-   
+
+-   
+
+-   
+
+-   
 
 ------------------------------------------------------------------------
 
@@ -187,10 +199,22 @@ Syntax for specifying 2SLS using `ivreg()`:
 
 ```{r}
   
-fit_2sls <- ivreg()
+fit_2sls <- ivreg(change_liberal ~ proposed_turbine_3km + 
+                      mindistlake + mindistlake_sq + 
+                      latitude + longitude + 
+                      lat_sq + long_sq + long_lat + 
+                      district_id | 
+            # right side with instrument (wind power) replacing treatment
+                log_wind_power + 
+                mindistlake + mindistlake_sq + 
+                latitude + longitude + 
+                lat_sq + long_sq + long_lat + 
+                district_id, 
+            data = matched_data
+                      )
 
 export_summs(fit_2sls, digits = 3,
-             model.names = c("Change in Liberal Vote Share"),
+             model.names = c("Change in Liberal Vote Share")
              #coefs = c("(Intercept)", "proposed_turbine_3km")
              ) 
 ```
@@ -199,7 +223,9 @@ export_summs(fit_2sls, digits = 3,
 
 **Question 4:** Choose two *robustness checks* from the paper that the authors use to increase confidence in their causal identification strategy. For each one, summarize the logic and findings from the robustness check in your own words:
 
-*Response:* \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+*Response:* Testing for "strategic selection" using wind resources is an important robustness check used by Stokes because fixed effects models rely on the assumption of parallel trends; essentially, it is the assumption that treated and untreated precincts would have followed similar political paths in the absence of turbines. If developers placed turbines in areas already politically distancing themselves away from the liberal party, then the fixed effects estimates would be biased. To address this issue, Stokes uses an IV approach, where natural wind speed predicts turbine placement (Stokes, 2015, pg. 6). Because wind is determined more by geography rather than political strategy/affiliation, this creates an "as-if-random" source of variation in turbine placement (Stokes, pg. 6). The close alignment between the IV and fixed effects estimates suggests that the electoral/political penalty reflects a causal response to turbine placement and not due to pre-existing political shifts or strategic site selection. As a result, the IV approach utilizing wind speed as an instrument helps address selection bias in turbine location (Stokes, pg. 6).
+
+Another robustness check Stokes considers is testing different distance buffers to establish the boundaries how "powerful" a causal effect can be detected away from a turbine, as well as to prevent spillover. Essentially, if wind turbines really caused the electoral backlash, then the political/electoral effect should be strongest for people living closest to them and weaken with distance. Stokes tests this by estimating the effect at different distance ranges (1 km, 2 km, 3 km, and beyond). If precincts far from turbines showed the same response as nearby ones, then it would suggest a broader regional trend rather than an effect for a local turbine. The results indicated that backlash is highly localized; vote share losses are significant up to 3 km and diminish beyond that distance (Stokes, pg. 11). This spatial pattern supports a causal interpretation of the response because it matches how turbines actually affect people (ex. nearby noise, visually displeasing, etc.) rather than through region-wide political shifts.
 
 ------------------------------------------------------------------------
 
